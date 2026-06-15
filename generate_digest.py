@@ -12,11 +12,11 @@ from datetime import datetime, timezone, timedelta
 
 # ── Feed configuration ──────────────────────────────────────────────────────
 FEEDS = [
-    {"url": "https://www.finextra.com/rss/headlines.aspx", "source": "Finextra",        "hours": 48,  "max": 5},
-    {"url": "https://sifted.eu/feed/",                     "source": "Sifted",           "hours": 48,  "max": 4},
-    {"url": "https://www.bankingdive.com/feeds/news/",     "source": "Banking Dive",     "hours": 48,  "max": 4},
-    {"url": "https://tearsheet.co/feed/",                  "source": "Tearsheet",        "hours": 48,  "max": 3},
-    {"url": "https://medium.com/feed/tag/fintech",         "source": "Medium / Fintech", "hours": 24,  "max": 3},
+    {"url": "https://www.finextra.com/rss/headlines.aspx", "source": "Finextra",        "hours": 96,  "max": 5},
+    {"url": "https://sifted.eu/feed/",                     "source": "Sifted",           "hours": 96,  "max": 4},
+    {"url": "https://www.bankingdive.com/feeds/news/",     "source": "Banking Dive",     "hours": 96,  "max": 4},
+    {"url": "https://tearsheet.co/feed/",                  "source": "Tearsheet",        "hours": 96,  "max": 3},
+    {"url": "https://medium.com/feed/tag/fintech",         "source": "Medium / Fintech", "hours": 48,  "max": 3},
     {"url": "https://medium.com/feed/wharton-fintech",     "source": "Wharton Fintech",  "hours": 720, "max": 2},
 ]
 
@@ -166,14 +166,18 @@ def parse_feed(xml_str, source, hours, max_items):
             break
 
         def text(tag, alt=None):
-            el = item.find(tag) or (item.find(f"atom:{tag}", ns) if alt else None)
+            el = item.find(tag)
+            if el is None and alt:
+                el = item.find(f"atom:{tag}", ns)
             return (el.text or "").strip() if el is not None else ""
 
         title = text("title")
         link = text("link")
         # Atom link may be in href attribute
         if not link:
-            link_el = item.find("link") or item.find("atom:link", ns)
+            link_el = item.find("link")
+            if link_el is None:
+                link_el = item.find("atom:link", ns)
             if link_el is not None:
                 link = link_el.get("href", "")
 
