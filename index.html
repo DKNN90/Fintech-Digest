@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fintech Daily Digest</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8f9fb; --surface: #fff; --border: #e5e7eb;
+      --text: #111827; --muted: #6b7280; --accent: #2563eb;
+      --stat-bg: #f0fdf4; --stat-border: #86efac; --stat-text: #15803d;
+      --quote-bg: #fafafa; --tag-bg: #f1f5f9; --tag-text: #475569;
+      --geo-bg: #eff6ff; --geo-text: #1d4ed8;
+      --warn-bg: #fffbeb; --warn-text: #92400e;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .logo { width: 30px; height: 30px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+    .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid transparent; background: none; }
+    .btn-ghost { color: var(--muted); border-color: var(--border); }
+    .btn-ghost:hover { background: var(--tag-bg); color: var(--text); }
+    .filter-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 7px 20px; display: flex; flex-direction: column; gap: 6px; }
+    .filter-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .filter-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 2px; min-width: 58px; }
+    .filter-pill { padding: 3px 11px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: none; color: var(--muted); transition: all 0.15s; }
+    .filter-pill:hover { background: var(--tag-bg); color: var(--text); }
+    .filter-pill.active-source { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .filter-pill.active-geo { background: var(--geo-text); color: #fff; border-color: var(--geo-text); }
+    .main { max-width: 760px; margin: 0 auto; padding: 20px 16px; }
+    .digest-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .digest-count { font-size: 12px; color: var(--muted); }
+    .digest-date-badge { font-size: 11px; padding: 2px 8px; background: var(--warn-bg); color: var(--warn-text); border-radius: 99px; font-weight: 500; }
+    .articles { display: flex; flex-direction: column; gap: 14px; }
+    .article-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: box-shadow 0.15s; }
+    .article-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.07); }
+    .card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .card-tags { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+    .source-tag { padding: 2px 9px; background: var(--tag-bg); color: var(--tag-text); border-radius: 5px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .geo-tag { padding: 2px 9px; background: var(--geo-bg); color: var(--geo-text); border-radius: 5px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .pub-date { font-size: 11px; color: var(--muted); white-space: nowrap; margin-left: auto; }
+    .article-title { font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 7px; }
+    .article-title a { color: inherit; text-decoration: none; }
+    .article-title a:hover { color: var(--accent); }
+    .article-summary { font-size: 13px; color: #374151; line-height: 1.6; margin-bottom: 12px; }
+    .enrichment { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
+    .highlight-stat { display: flex; gap: 8px; align-items: flex-start; background: var(--stat-bg); border: 1px solid var(--stat-border); border-radius: 7px; padding: 9px 11px; }
+    .highlight-quote { display: flex; gap: 8px; align-items: flex-start; background: var(--quote-bg); border-left: 3px solid #d1d5db; border-radius: 0 7px 7px 0; padding: 9px 11px; }
+    .hi-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+    .hi-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--stat-text); margin-bottom: 2px; }
+    .highlight-quote .hi-label { color: var(--muted); }
+    .hi-value { font-size: 12.5px; color: #166534; font-weight: 500; line-height: 1.4; }
+    .hi-quote { font-size: 12.5px; color: var(--text); font-style: italic; line-height: 1.5; }
+    .hi-attr { font-size: 11px; color: var(--muted); margin-top: 3px; font-style: normal; font-weight: 500; }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 11px; border-top: 1px solid var(--border); }
+    .source-link { font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 500; }
+    .source-link:hover { text-decoration: underline; }
+    .source-cite { font-size: 11px; color: var(--muted); }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <div class="logo">📰</div>
+    <div>
+      <h1>Fintech Daily Digest</h1>
+      <div class="header-sub" id="headerSub">Updated daily by scheduled task</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="showFeedInfo()">📡 Feeds</button>
+  </div>
+</div>
+<div class="filter-bar" id="filterBar" style="display:none">
+  <div class="filter-row">
+    <span class="filter-label">Source</span>
+    <button class="filter-pill active-source" data-type="source" data-value="all" onclick="setFilter('source','all',this)">All</button>
+    <span id="sourcePills"></span>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Geography</span>
+    <button class="filter-pill active-geo" data-type="geo" data-value="all" onclick="setFilter('geo','all',this)">All</button>
+    <span id="geoPills"></span>
+  </div>
+</div>
+<div class="main" id="main"></div>
+<script>
+window.DIGEST_DATA = {"date":"Monday 15 June 2026","feeds":["Finextra","Sifted","Medium / Fintech","Wharton Fintech"],"articles":[{"title":"Digital Asset raises $355m to make Canton the onchain infrastructure for capital markets","description":"A host of financial services giants, including BNP Paribas, Coinbase and HSBC, have joined a $355 million funding round for Digital Asset, the firm behind the Canton Network public, permissionless blockchain purpose-built for institutional finance.","link":"https://www.finextra.com/newsarticle/47905/digital-asset-raises-355m-to-make-canton-the-onchain-infrastructure-for-capital-markets","pubDate":"Fri, 13 Jun 2026 00:01:00 GMT","source":"Finextra","geography":"🌍 Global","summary":"Digital Asset secures $355m from BNP Paribas, Coinbase and HSBC to establish its Canton Network as the institutional blockchain standard for capital markets.","key_stat":"$355 million funding round backed by BNP Paribas, Coinbase, and HSBC","key_quote":null,"key_quote_attr":null},{"title":"Adyen strikes $335m deal for enterprise billing platform Orb","description":"Dutch payments processor Adyen has agreed its second major acquisition in a matter of months, striking a $335 million deal to buy enterprise billing platform Orb.","link":"https://www.finextra.com/newsarticle/47910/adyen-strikes-335m-deal-for-enterprise-billing-platform-orb","pubDate":"Fri, 13 Jun 2026 14:22:00 GMT","source":"Finextra","geography":"🇳🇱 Netherlands","summary":"Adyen acquires enterprise billing platform Orb for $335m, its second major deal in months, deepening its push beyond payments into broader revenue infrastructure.","key_stat":"$335 million acquisition — Adyen's second major deal in months","key_quote":null,"key_quote_attr":null},{"title":"Canada's Koho hits unicorn status and targets banking license","description":"Canadian fintech Koho has raised C$130 million at a C$1.33 billion valuation, providing it with the initial capital base it needs in its pursuit of a federal banking license.","link":"https://www.finextra.com/newsarticle/47904/canadas-koho-hits-unicorn-status-and-targets-banking-license","pubDate":"Fri, 13 Jun 2026 00:01:00 GMT","source":"Finextra","geography":"🇨🇦 Canada","summary":"Canadian neobank Koho raises C$130m at a C$1.33bn valuation, using the funds as the capital foundation required to apply for a federal banking license.","key_stat":"C$130 million raised at C$1.33 billion valuation","key_quote":null,"key_quote_attr":null},{"title":"SpaceX IPO: UK retail investors boost account funding by 27%, TrueLayer data shows","description":"TrueLayer has recorded a sharp rise in Pay by Bank transactions into trading and investment accounts ahead of the SpaceX listing, expected to be one of the largest public offerings and notably includes a significant retail allocation.","link":"https://www.finextra.com/newsarticle/47908/spacex-ipo-uk-retail-investors-boost-account-funding-by-27-truelayer-data-shows","pubDate":"Fri, 13 Jun 2026 09:10:00 GMT","source":"Finextra","geography":"🇬🇧 UK","summary":"The SpaceX IPO has driven a 27% surge in Pay by Bank flows into UK trading accounts, according to TrueLayer data, reflecting strong retail investor appetite.","key_stat":"27% increase in Pay by Bank transactions into trading and investment accounts","key_quote":null,"key_quote_attr":null},{"title":"Visa scam disruption unit identifies over $2.6 billion in fraud attempts since formation","description":"Visa's dedicated Scam Disruption team has identified over $2.6 billion in fraud attempts globally since its creation just over two years ago.","link":"https://www.finextra.com/newsarticle/47901/visa-scam-disruption-unit-identifies-over-26-billion-in-fraud-attempts-since-formation","pubDate":"Thu, 12 Jun 2026 09:29:00 GMT","source":"Finextra","geography":"🌍 Global","summary":"Visa's Scam Disruption unit has flagged over $2.6bn in global fraud attempts since launching two years ago, underscoring the scale of payment fraud facing the industry.","key_stat":"Over $2.6 billion in fraud attempts identified in under two years","key_quote":null,"key_quote_attr":null},{"title":"Square offers sellers 3.5% savings rate","description":"Square Financial Services has launched Square High Yield Savings, a new deposit tier paying 3.50% APY to Square sellers who maintain a daily balance of $10,000 or more. The rate is more than eight times the national average savings account rate.","link":"https://www.finextra.com/pressarticle/110125/square-offers-sellers-35-savings-rate","pubDate":"Fri, 13 Jun 2026 15:25:00 GMT","source":"Finextra","geography":"🇺🇸 US","summary":"Block's Square launches a high-yield savings product at 3.50% APY for sellers — more than 8x the national average — deepening its embedded finance play for small businesses.","key_stat":"3.50% APY — over 8x the national average savings rate — for balances above $10,000","key_quote":null,"key_quote_attr":null},{"title":"Barclays to acquire GoHenry, expand youth financial education offering in UK","description":"Barclays has agreed to acquire UK-based fintech GoHenry from Acorns as demand for early financial education and digital-first banking experiences continues to grow.","link":"https://www.finextra.com/newsarticle/47909/barclays-to-acquire-gohenry-expand-youth-financial-education-offering-in-uk","pubDate":"Fri, 13 Jun 2026 11:00:00 GMT","source":"Finextra","geography":"🇬🇧 UK","summary":"Barclays acquires youth money app GoHenry from Acorns, adding early financial education and teen banking to its UK retail offering as it competes for lifelong customers.","key_stat":null,"key_quote":null,"key_quote_attr":null},{"title":"Zelle heads to India; preps stablecoin for global expansion","description":"US bank-owned P2P payments service Zelle is going global, with users soon getting the ability to send money to friends and family in India, while also preparing a stablecoin for broader international expansion.","link":"https://www.finextra.com/newsarticle/47912/zelle-heads-to-india-preps-stablecoin-for-global-expansion","pubDate":"Fri, 13 Jun 2026 15:12:00 GMT","source":"Finextra","geography":"🌍 Global","summary":"Zelle breaks out of the US by launching India remittances and developing a stablecoin, marking a strategic pivot from domestic P2P into cross-border and digital-asset payments.","key_stat":null,"key_quote":null,"key_quote_attr":null},{"title":"KPMG report contained AI hallucinations about AI use at UBS - FT","description":"KPMG has been forced to pull a report on artificial intelligence adoption after it emerged that claims about the technology's use by some organisations, including UBS, were false and likely the result of AI hallucinations.","link":"https://www.finextra.com/newsarticle/47911/kpmg-report-contained-ai-hallucinations-about-ai-use-at-ubs---ft","pubDate":"Fri, 13 Jun 2026 14:36:00 GMT","source":"Finextra","geography":"🌍 Global","summary":"KPMG withdrew an AI adoption report after false claims about UBS's AI usage were found — a high-profile incident exposing hallucination risks in AI-assisted professional research.","key_stat":null,"key_quote":null,"key_quote_attr":null},{"title":"Appeals court upholds Bankman-Fried's conviction","description":"A US federal appeals court has upheld FTX co-founder Sam Bankman-Fried's conviction, finding that the trial that led to his 25-year prison term was not unfair.","link":"https://www.finextra.com/newsarticle/47915/appeals-court-upholds-bankman-frieds-conviction","pubDate":"Fri, 13 Jun 2026 18:27:00 GMT","source":"Finextra","geography":"🇺🇸 US","summary":"A US federal appeals court confirmed Sam Bankman-Fried's conviction, upholding the 25-year prison sentence from the FTX fraud trial after finding no procedural unfairness.","key_stat":"25-year prison sentence upheld by federal appeals court","key_quote":null,"key_quote_attr":null},{"title":"Visa to build tech layer for tokenised deposits","description":"Visa is making a tokenised deposits play, building the technology layer that can allow banks to turn traditional deposits into programmable, always-on digital money.","link":"https://www.finextra.com/newsarticle/47903/visa-to-build-tech-layer-for-tokenised-deposits","pubDate":"Thu, 12 Jun 2026 13:19:00 GMT","source":"Finextra","geography":"🌍 Global","summary":"Visa is building infrastructure to let banks convert traditional deposits into programmable digital money, positioning itself at the centre of the emerging tokenised deposit ecosystem.","key_stat":null,"key_quote":null,"key_quote_attr":null},{"title":"Satispay targets €120 million financial raise","description":"Italian fintech unicorn Satispay is planning to raise up to €120 million, with around half covered by subscription commitments from existing investors including Greyhound, Addition and Lightrock.","link":"https://www.finextra.com/newsarticle/47902/satispay-targets-120-million-financial-raise","pubDate":"Thu, 12 Jun 2026 11:08:00 GMT","source":"Finextra","geography":"🇮🇹 Italy","summary":"Italian payments unicorn Satispay is raising up to €120m with half already committed by existing backers, fuelling its continued European expansion.","key_stat":"€120 million target raise, ~half already committed by existing investors","key_quote":null,"key_quote_attr":null},{"title":"MassPay and Coinbase team on stablecoin-powered payouts","description":"MassPay Holdings and Coinbase announced a strategic partnership to bring stablecoin-powered cross-border payout capabilities to businesses worldwide.","link":"https://www.finextra.com/pressarticle/110124/masspay-and-coinbase-team-on-stablecoin-powered-payouts","pubDate":"Fri, 13 Jun 2026 14:10:00 GMT","source":"Finextra","geography":"🌍 Global","summary":"MassPay and Coinbase partner to deliver stablecoin-powered cross-border payouts, combining payout orchestration scale with Coinbase's regulated crypto infrastructure.","key_stat":null,"key_quote":null,"key_quote_attr":null},{"title":"Citi launches tokenised depositary receipts to connect private companies and investors","description":"Citi has announced the launch of Digital Depositary Receipts on private shares, introducing a direct and transparent model that broadens access to private markets for both issuers and investors.","link":"https://www.finextra.com/pressarticle/110120/citi-launches-tokenised-depositary-receipts-to-connect-private-companies-and-investors","pubDate":"Fri, 13 Jun 2026 13:16:00 GMT","source":"Finextra","geography":"🌍 Global","summary":"Citi launches Digital Depositary Receipts on private company shares, creating a new pathway for retail and institutional investors to access private markets more transparently.","key_stat":null,"key_quote":null,"key_quote_attr":null},{"title":"G7 central banks publish report on quantum tech","description":"The G7 Central Bank Quantum Technologies Working Group announces the publication of its report, 'Preparing for Quantum Technologies: Key Considerations for Financial Sector Participants.' This constitutes the first public deliverable of the working group.","link":"https://www.finextra.com/pressarticle/110127/g7-central-banks-publish-report-on-quantum-tech","pubDate":"Fri, 13 Jun 2026 18:42:00 GMT","source":"Finextra","geography":"🌍 Global","summary":"G7 central banks publish their first joint report on quantum technology readiness, signalling that regulators view quantum risk as a near-term priority for the financial sector.","key_stat":null,"key_quote":null,"key_quote_attr":null}]};
+</script>
+<script>
+let activeSource='all',activeGeo='all';
+const data=window.DIGEST_DATA;
+function init(){if(!data.date||!data.articles.length){document.getElementById('main').innerHTML='<div style="text-align:center;padding:48px 32px;background:#fff;border:1px solid #e5e7eb;border-radius:12px"><div style="font-size:36px;margin-bottom:14px">⏰</div><div style="font-size:15px;font-weight:600;margin-bottom:8px">Digest not yet populated</div><div style="font-size:13px;color:#6b7280">The daily scheduled task will run each morning.</div></div>';return;}
+document.getElementById('headerSub').textContent='Last updated: '+data.date;
+const sources=[...new Set(data.articles.map(a=>a.source))];
+document.getElementById('sourcePills').innerHTML=sources.map(s=>`<button class="filter-pill" data-type="source" data-value="${esc(s)}" onclick="setFilter('source','${esc(s)}',this)">${esc(s)}</button>`).join('');
+const geos=[...new Set(data.articles.map(a=>a.geography).filter(Boolean))].sort((a,b)=>{if(a==='🌍 Global')return 1;if(b==='🌍 Global')return -1;return a.localeCompare(b);});
+document.getElementById('geoPills').innerHTML=geos.map(g=>`<button class="filter-pill" data-type="geo" data-value="${esc(g)}" onclick="setFilter('geo','${esc(g)}',this)">${esc(g)}</button>`).join('');
+document.getElementById('filterBar').style.display='flex';render();}
+function render(){let visible=data.articles;if(activeSource!=='all')visible=visible.filter(a=>a.source===activeSource);if(activeGeo!=='all')visible=visible.filter(a=>a.geography===activeGeo);document.getElementById('main').innerHTML=`<div class="digest-meta"><div class="digest-count">${visible.length} article${visible.length!==1?'s':''}</div><span class="digest-date-badge">${data.date}</span></div><div class="articles">${visible.map(buildCard).join('')}</div>`;}
+function buildCard(a){const date=a.pubDate?fmtRel(new Date(a.pubDate)):'';const geo=a.geography?`<span class="geo-tag">${esc(a.geography)}</span>`:'';const stat=a.key_stat?`<div class="highlight-stat"><span class="hi-icon">📊</span><div><div class="hi-label">Key Stat</div><div class="hi-value">${esc(a.key_stat)}</div></div></div>`:'';const quote=a.key_quote?`<div class="highlight-quote"><span class="hi-icon">💬</span><div><div class="hi-label">Key Quote</div><div class="hi-quote">"${esc(a.key_quote)}"</div>${a.key_quote_attr?`<div class="hi-attr">— ${esc(a.key_quote_attr)}</div>`:''}</div></div>`:'';return`<div class="article-card"><div class="card-top"><div class="card-tags"><span class="source-tag">${esc(a.source)}</span>${geo}</div>${date?`<span class="pub-date">${date}</span>`:''}</div><div class="article-title"><a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.title)}</a></div>${a.summary?`<div class="article-summary">${esc(a.summary)}</div>`:''}${stat||quote?`<div class="enrichment">${stat}${quote}</div>`:''}<div class="card-footer"><a class="source-link" href="${esc(a.link)}" target="_blank" rel="noopener">Read full article ↗</a><span class="source-cite">Source: ${esc(a.source)}${date?' · '+date:''}</span></div></div>`;}
+function setFilter(type,value,el){if(type==='source'){activeSource=value;document.querySelectorAll('[data-type="source"]').forEach(p=>p.classList.remove('active-source'));}else{activeGeo=value;document.querySelectorAll('[data-type="geo"]').forEach(p=>p.classList.remove('active-geo'));}el.classList.add(type==='source'?'active-source':'active-geo');render();}
+function showFeedInfo(){alert('Active feeds:\n• Finextra\n• Sifted\n• Medium / Fintech\n• Wharton Fintech\n\nTo add or remove feeds, ask Claude to update the fintech-daily-digest scheduled task.');}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtRel(d){const h=Math.floor((Date.now()-d.getTime())/3600000);if(h<1)return'Just now';if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
+init();
+</script>
+</body>
+</html>
