@@ -1,0 +1,29 @@
+name: Update Fintech Digest
+
+on:
+  schedule:
+    - cron: '0 7 * * *'   # 7am UTC every day
+  workflow_dispatch:        # Also allows manual runs from GitHub UI
+
+jobs:
+  update-digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate digest
+        run: python generate_digest.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "Fintech Digest Bot"
+          git config user.email "action@github.com"
+          git add index.html
+          git diff --staged --quiet && echo "No changes" || (git commit -m "Daily digest update $(date -u '+%Y-%m-%d')" && git push)
