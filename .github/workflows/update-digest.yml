@@ -5,6 +5,9 @@ on:
     - cron: '0 7 * * *'   # 7am UTC every day
   workflow_dispatch:        # Also allows manual runs from GitHub UI
 
+permissions:
+  contents: write
+
 jobs:
   update-digest:
     runs-on: ubuntu-latest
